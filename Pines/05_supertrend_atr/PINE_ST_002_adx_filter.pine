@@ -1,0 +1,35 @@
+//@version=5
+strategy('SuperTrend + ADX', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[supertrend, direction] = ta.supertrend(3.0, 10)
+[diplus, diminus, adx] = ta.dmi(14, 14)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Only trade when ADX > 25 (trending market)
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, supertrend) and adx > 25
+shortCondition = ta.crossunder(close, supertrend) and adx > 25
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(supertrend, 'SuperTrend', color=direction < 0 ? color.green : color.red, linewidth=2)
+bgcolor(adx > 25 ? na : color.new(color.gray, 90))  // Gray background when not trending
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'ST+ADX Long', '{{ticker}} SuperTrend bullish with strong trend')
+alertcondition(shortCondition, 'ST+ADX Short', '{{ticker}} SuperTrend bearish with strong trend')

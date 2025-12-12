@@ -1,0 +1,47 @@
+//@version=5
+strategy('Hammer/Shooting Star', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════
+bodySize = math.abs(close - open)
+upperWick = high - math.max(close, open)
+lowerWick = math.min(close, open) - low
+
+// ══════════════════════════════════════════
+// PATTERN DETECTION
+// Hammer: small body at top, long lower wick
+// Shooting Star: small body at bottom, long upper wick
+// ══════════════════════════════════════════
+hammer = lowerWick > bodySize * 2 and upperWick < bodySize * 0.5 and bodySize > 0
+shootingStar = upperWick > bodySize * 2 and lowerWick < bodySize * 0.5 and bodySize > 0
+
+// Context: hammer at support (after down move), shooting star at resistance (after up move)
+downTrend = close < ta.sma(close, 10)
+upTrend = close > ta.sma(close, 10)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = hammer and downTrend
+shortCondition = shootingStar and upTrend
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plotshape(longCondition, 'Hammer', shape.triangleup, location.belowbar, color.green)
+plotshape(shortCondition, 'Shooting Star', shape.triangledown, location.abovebar, color.red)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Hammer', '{{ticker}} Hammer pattern in downtrend')
+alertcondition(shortCondition, 'Shooting Star', '{{ticker}} Shooting Star in uptrend')

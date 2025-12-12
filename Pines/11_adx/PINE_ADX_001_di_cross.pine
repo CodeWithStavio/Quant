@@ -1,0 +1,41 @@
+//@version=5
+strategy('ADX + DI Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+adxLen = input.int(14, 'ADX Length')
+adxThreshold = input.int(25, 'ADX Threshold')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[diplus, diminus, adx] = ta.dmi(adxLen, adxLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Trade when ADX > threshold (trending) and DI crosses
+// ══════════════════════════════════════════
+longCondition = ta.crossover(diplus, diminus) and adx > adxThreshold
+shortCondition = ta.crossunder(diplus, diminus) and adx > adxThreshold
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+bgcolor(adx > adxThreshold ? color.new(color.blue, 95) : na)
+plotshape(longCondition, 'Long', shape.triangleup, location.belowbar, color.green)
+plotshape(shortCondition, 'Short', shape.triangledown, location.abovebar, color.red)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'ADX Long', '{{ticker}} +DI crossed above -DI with strong trend')
+alertcondition(shortCondition, 'ADX Short', '{{ticker}} -DI crossed above +DI with strong trend')

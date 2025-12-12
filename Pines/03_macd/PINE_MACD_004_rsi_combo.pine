@@ -1,0 +1,37 @@
+//@version=5
+strategy('MACD + RSI Combo', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[macdLine, signalLine, histLine] = ta.macd(close, 12, 26, 9)
+rsi = ta.rsi(close, 14)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Long: MACD bullish cross AND RSI > 50
+// Short: MACD bearish cross AND RSI < 50
+// ══════════════════════════════════════════
+longCondition = ta.crossover(macdLine, signalLine) and rsi > 50
+shortCondition = ta.crossunder(macdLine, signalLine) and rsi < 50
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+bgcolor(longCondition ? color.new(color.green, 90) : shortCondition ? color.new(color.red, 90) : na)
+plotshape(longCondition, 'Long', shape.triangleup, location.belowbar, color.green)
+plotshape(shortCondition, 'Short', shape.triangledown, location.abovebar, color.red)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'MACD+RSI Long', '{{ticker}} MACD+RSI bullish')
+alertcondition(shortCondition, 'MACD+RSI Short', '{{ticker}} MACD+RSI bearish')

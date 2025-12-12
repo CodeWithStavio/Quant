@@ -1,0 +1,54 @@
+//@version=5
+strategy('NR7 Breakout', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════
+candleRange = high - low
+
+// ══════════════════════════════════════════
+// NR7 DETECTION
+// NR7: Today's range is narrowest of last 7 days
+// ══════════════════════════════════════════
+isNR7 = candleRange == ta.lowest(candleRange, 7)
+
+// Mark NR7 day, trade breakout next day
+var float nr7High = na
+var float nr7Low = na
+var bool waitingForBreakout = false
+
+if isNR7[1]
+    nr7High := high[1]
+    nr7Low := low[1]
+    waitingForBreakout := true
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = waitingForBreakout and close > nr7High
+shortCondition = waitingForBreakout and close < nr7Low
+
+if longCondition or shortCondition
+    waitingForBreakout := false
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+bgcolor(isNR7 ? color.new(color.yellow, 80) : na)
+plot(waitingForBreakout ? nr7High : na, 'NR7 High', color=color.green)
+plot(waitingForBreakout ? nr7Low : na, 'NR7 Low', color=color.red)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(isNR7, 'NR7 Alert', '{{ticker}} NR7 pattern - expect breakout')
+alertcondition(longCondition, 'NR7 Long', '{{ticker}} NR7 bullish breakout')
+alertcondition(shortCondition, 'NR7 Short', '{{ticker}} NR7 bearish breakout')

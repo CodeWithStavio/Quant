@@ -1,0 +1,50 @@
+//@version=5
+strategy('1min EMA Scalp', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// BEST FOR: 1-minute chart
+// ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+ema5 = ta.ema(close, 5)
+ema13 = ta.ema(close, 13)
+ema50 = ta.ema(close, 50)
+
+// ══════════════════════════════════════════
+// TREND DETECTION
+// Quick scalp in direction of trend
+// ══════════════════════════════════════════
+trendUp = ema50 > ema50[5]
+trendDown = ema50 < ema50[5]
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(ema5, ema13) and trendUp
+shortCondition = ta.crossunder(ema5, ema13) and trendDown
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// 10 tick TP, 5 tick SL for MES/MNQ
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+    strategy.exit('Long Exit', 'Long', profit=10, loss=5)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+    strategy.exit('Short Exit', 'Short', profit=10, loss=5)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ema5, 'EMA5', color=color.green)
+plot(ema13, 'EMA13', color=color.red)
+plot(ema50, 'EMA50', color=color.gray, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Scalp Long', '{{ticker}} 1min scalp LONG')
+alertcondition(shortCondition, 'Scalp Short', '{{ticker}} 1min scalp SHORT')

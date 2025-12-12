@@ -1,0 +1,44 @@
+//@version=5
+strategy('Doji Reversal', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════
+bodySize = math.abs(close - open)
+candleRange = high - low
+
+// ══════════════════════════════════════════
+// PATTERN DETECTION
+// Doji: body is less than 10% of total range
+// ══════════════════════════════════════════
+isDoji = bodySize < candleRange * 0.1 and candleRange > 0
+
+// Context for reversal
+overextendedUp = close > ta.sma(close, 20) * 1.02
+overextendedDown = close < ta.sma(close, 20) * 0.98
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = isDoji and overextendedDown
+shortCondition = isDoji and overextendedUp
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plotshape(isDoji, 'Doji', shape.diamond, location.abovebar, color.yellow, size=size.tiny)
+bgcolor(longCondition ? color.new(color.green, 90) : shortCondition ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Doji Long', '{{ticker}} Doji at oversold')
+alertcondition(shortCondition, 'Doji Short', '{{ticker}} Doji at overbought')

@@ -1,0 +1,56 @@
+//@version=5
+strategy('Ichimoku Cloud Breakout', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+tenkanLen = input.int(9, 'Tenkan Length')
+kijunLen = input.int(26, 'Kijun Length')
+senkouBLen = input.int(52, 'Senkou B Length')
+
+// ══════════════════════════════════════════
+// DONCHIAN FUNCTION
+// ══════════════════════════════════════════
+donchian(len) => (ta.highest(high, len) + ta.lowest(low, len)) / 2
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+tenkan = donchian(tenkanLen)
+kijun = donchian(kijunLen)
+senkouA = (tenkan + kijun) / 2
+senkouB = donchian(senkouBLen)
+
+// Cloud values offset by 26
+cloudTop = math.max(senkouA[26], senkouB[26])
+cloudBottom = math.min(senkouA[26], senkouB[26])
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Price breaks above/below cloud
+// ══════════════════════════════════════════
+longCondition = close > cloudTop and close[1] <= cloudTop[1]
+shortCondition = close < cloudBottom and close[1] >= cloudBottom[1]
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(tenkan, 'Tenkan', color=color.blue)
+plot(kijun, 'Kijun', color=color.red)
+p1 = plot(senkouA, 'Senkou A', color=color.green, offset=26)
+p2 = plot(senkouB, 'Senkou B', color=color.red, offset=26)
+fill(p1, p2, color=senkouA > senkouB ? color.new(color.green, 80) : color.new(color.red, 80))
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Ichi Long', '{{ticker}} broke above Ichimoku cloud')
+alertcondition(shortCondition, 'Ichi Short', '{{ticker}} broke below Ichimoku cloud')

@@ -1,0 +1,39 @@
+//@version=5
+strategy('TK Cross', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// DONCHIAN FUNCTION
+// ══════════════════════════════════════════
+donchian(len) => (ta.highest(high, len) + ta.lowest(low, len)) / 2
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+tenkan = donchian(9)
+kijun = donchian(26)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(tenkan, kijun)
+shortCondition = ta.crossunder(tenkan, kijun)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(tenkan, 'Tenkan', color=color.blue, linewidth=2)
+plot(kijun, 'Kijun', color=color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'TK Long', '{{ticker}} Tenkan crossed above Kijun')
+alertcondition(shortCondition, 'TK Short', '{{ticker}} Tenkan crossed below Kijun')

@@ -1,0 +1,56 @@
+//@version=5
+strategy('Triple EMA Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+ema1Len = input.int(8, 'Fast EMA')
+ema2Len = input.int(21, 'Medium EMA')
+ema3Len = input.int(55, 'Slow EMA')
+useSessionFilter = input.bool(true, 'RTH Only')
+
+// ══════════════════════════════════════════
+// SESSION FILTER
+// ══════════════════════════════════════════
+rthSession = time(timeframe.period, '0930-1600:23456', 'America/New_York')
+inSession = useSessionFilter ? not na(rthSession) : true
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+ema1 = ta.ema(close, ema1Len)
+ema2 = ta.ema(close, ema2Len)
+ema3 = ta.ema(close, ema3Len)
+
+// ══════════════════════════════════════════
+// CONDITIONS - All EMAs aligned
+// ══════════════════════════════════════════
+longCondition = ema1 > ema2 and ema2 > ema3 and ta.crossover(ema1, ema2) and inSession
+shortCondition = ema1 < ema2 and ema2 < ema3 and ta.crossunder(ema1, ema2) and inSession
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// Exit on opposite alignment
+if ema1 < ema2
+    strategy.close('Long')
+if ema1 > ema2
+    strategy.close('Short')
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ema1, 'EMA 8', color=color.green)
+plot(ema2, 'EMA 21', color=color.orange)
+plot(ema3, 'EMA 55', color=color.red)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Long', '{{ticker}} Triple EMA LONG')
+alertcondition(shortCondition, 'Short', '{{ticker}} Triple EMA SHORT')

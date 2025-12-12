@@ -1,0 +1,53 @@
+//@version=5
+strategy('EMA Crossover', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+fastLen = input.int(9, 'Fast EMA', minval=1)
+slowLen = input.int(21, 'Slow EMA', minval=1)
+useSessionFilter = input.bool(true, 'RTH Only')
+stopLossPoints = input.float(10, 'Stop Loss (Points)')
+takeProfitPoints = input.float(20, 'Take Profit (Points)')
+
+// ══════════════════════════════════════════
+// SESSION FILTER (RTH: 9:30 AM - 4:00 PM ET)
+// ══════════════════════════════════════════
+rthSession = time(timeframe.period, '0930-1600:23456', 'America/New_York')
+inSession = useSessionFilter ? not na(rthSession) : true
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+fastEMA = ta.ema(close, fastLen)
+slowEMA = ta.ema(close, slowLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(fastEMA, slowEMA) and inSession
+shortCondition = ta.crossunder(fastEMA, slowEMA) and inSession
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+    strategy.exit('Long Exit', 'Long', stop=close - stopLossPoints, limit=close + takeProfitPoints)
+
+if shortCondition
+    strategy.entry('Short', strategy.short)
+    strategy.exit('Short Exit', 'Short', stop=close + stopLossPoints, limit=close - takeProfitPoints)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(fastEMA, 'Fast EMA', color=color.blue, linewidth=2)
+plot(slowEMA, 'Slow EMA', color=color.red, linewidth=2)
+bgcolor(longCondition ? color.new(color.green, 90) : shortCondition ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, title='Long Signal', message='{{ticker}} LONG at {{close}}')
+alertcondition(shortCondition, title='Short Signal', message='{{ticker}} SHORT at {{close}}')

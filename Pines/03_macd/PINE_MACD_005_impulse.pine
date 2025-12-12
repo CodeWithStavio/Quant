@@ -1,0 +1,57 @@
+//@version=5
+strategy('Elder Impulse System', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+emaLen = input.int(13, 'EMA Length')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+ema13 = ta.ema(close, emaLen)
+[macdLine, signalLine, histLine] = ta.macd(close, 12, 26, 9)
+
+emaRising = ema13 > ema13[1]
+emaFalling = ema13 < ema13[1]
+histRising = histLine > histLine[1]
+histFalling = histLine < histLine[1]
+
+// ══════════════════════════════════════════
+// IMPULSE DETECTION
+// Green: Both rising (bullish impulse)
+// Red: Both falling (bearish impulse)
+// Blue: Mixed (neutral)
+// ══════════════════════════════════════════
+bullishImpulse = emaRising and histRising
+bearishImpulse = emaFalling and histFalling
+
+longCondition = bullishImpulse and not bullishImpulse[1]
+shortCondition = bearishImpulse and not bearishImpulse[1]
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// Exit on impulse change
+if bearishImpulse and strategy.position_size > 0
+    strategy.close('Long')
+if bullishImpulse and strategy.position_size < 0
+    strategy.close('Short')
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+barColor = bullishImpulse ? color.green : bearishImpulse ? color.red : color.blue
+barcolor(barColor)
+plot(ema13, 'EMA 13', color=color.orange, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Impulse Long', '{{ticker}} Bullish Impulse started')
+alertcondition(shortCondition, 'Impulse Short', '{{ticker}} Bearish Impulse started')

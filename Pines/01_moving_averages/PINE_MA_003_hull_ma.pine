@@ -1,0 +1,45 @@
+//@version=5
+strategy('Hull MA Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+hmaLen = input.int(20, 'HMA Length')
+useSessionFilter = input.bool(true, 'RTH Only')
+
+// ══════════════════════════════════════════
+// SESSION FILTER
+// ══════════════════════════════════════════
+inSession = useSessionFilter ? not na(time(timeframe.period, '0930-1600:23456', 'America/New_York')) : true
+
+// ══════════════════════════════════════════
+// HULL MOVING AVERAGE CALCULATION
+// ══════════════════════════════════════════
+hma = ta.hma(close, hmaLen)
+hmaSlope = hma - hma[1]
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(hmaSlope, 0) and inSession
+shortCondition = ta.crossunder(hmaSlope, 0) and inSession
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+hmaColor = hmaSlope > 0 ? color.green : color.red
+plot(hma, 'HMA', color=hmaColor, linewidth=3)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'HMA Long', '{{ticker}} HMA turned bullish')
+alertcondition(shortCondition, 'HMA Short', '{{ticker}} HMA turned bearish')

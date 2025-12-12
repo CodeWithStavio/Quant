@@ -1,0 +1,51 @@
+//@version=5
+strategy('Triple Confirmation', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATOR 1: EMA TREND
+// ══════════════════════════════════════════
+ema50 = ta.ema(close, 50)
+uptrend = close > ema50
+downtrend = close < ema50
+
+// ══════════════════════════════════════════
+// INDICATOR 2: RSI
+// ══════════════════════════════════════════
+rsi = ta.rsi(close, 14)
+rsiBullish = rsi > 50 and rsi < 70
+rsiBearish = rsi < 50 and rsi > 30
+
+// ══════════════════════════════════════════
+// INDICATOR 3: MACD
+// ══════════════════════════════════════════
+[macdLine, signalLine, hist] = ta.macd(close, 12, 26, 9)
+macdBullish = macdLine > signalLine
+macdBearish = macdLine < signalLine
+
+// ══════════════════════════════════════════
+// TRIPLE CONFLUENCE
+// ══════════════════════════════════════════
+longCondition = uptrend and rsiBullish and macdBullish and not (uptrend[1] and rsiBullish[1] and macdBullish[1])
+shortCondition = downtrend and rsiBearish and macdBearish and not (downtrend[1] and rsiBearish[1] and macdBearish[1])
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ema50, 'EMA 50', color=color.orange, linewidth=2)
+bgcolor(longCondition ? color.new(color.green, 80) : shortCondition ? color.new(color.red, 80) : na)
+plotshape(longCondition, 'Long', shape.labelup, location.belowbar, color.green, text='CONF')
+plotshape(shortCondition, 'Short', shape.labeldown, location.abovebar, color.red, text='CONF')
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Triple Long', '{{ticker}} Triple Confluence LONG: EMA+RSI+MACD')
+alertcondition(shortCondition, 'Triple Short', '{{ticker}} Triple Confluence SHORT: EMA+RSI+MACD')

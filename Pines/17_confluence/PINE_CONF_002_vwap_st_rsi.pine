@@ -1,0 +1,49 @@
+//@version=5
+strategy('VWAP+SuperTrend+RSI', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// VWAP
+// ══════════════════════════════════════════
+vwapVal = ta.vwap(hlc3)
+aboveVWAP = close > vwapVal
+belowVWAP = close < vwapVal
+
+// ══════════════════════════════════════════
+// SUPERTREND
+// ══════════════════════════════════════════
+[supertrend, direction] = ta.supertrend(3.0, 10)
+stBullish = direction < 0
+stBearish = direction > 0
+
+// ══════════════════════════════════════════
+// RSI FILTER
+// ══════════════════════════════════════════
+rsi = ta.rsi(close, 14)
+rsiOK_long = rsi > 40 and rsi < 70
+rsiOK_short = rsi > 30 and rsi < 60
+
+// ══════════════════════════════════════════
+// ALL THREE ALIGNED
+// ══════════════════════════════════════════
+longCondition = aboveVWAP and stBullish and rsiOK_long and (not aboveVWAP[1] or not stBullish[1])
+shortCondition = belowVWAP and stBearish and rsiOK_short and (not belowVWAP[1] or not stBearish[1])
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(vwapVal, 'VWAP', color=color.purple, linewidth=2)
+plot(supertrend, 'SuperTrend', color=direction < 0 ? color.green : color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'VSR Long', '{{ticker}} VWAP+ST+RSI aligned LONG')
+alertcondition(shortCondition, 'VSR Short', '{{ticker}} VWAP+ST+RSI aligned SHORT')

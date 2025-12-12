@@ -1,0 +1,32 @@
+//@version=5
+strategy('Engulfing Pattern', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// PATTERN DETECTION
+// ══════════════════════════════════════════
+
+// Bullish Engulfing
+bullishEngulfing = close[1] < open[1] and close > open and open <= close[1] and close >= open[1]
+
+// Bearish Engulfing
+bearishEngulfing = close[1] > open[1] and close < open and open >= close[1] and close <= open[1]
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if bullishEngulfing
+    strategy.entry('Long', strategy.long)
+if bearishEngulfing
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plotshape(bullishEngulfing, 'Bull Engulf', shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(bearishEngulfing, 'Bear Engulf', shape.triangledown, location.abovebar, color.red, size=size.small)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(bullishEngulfing, 'Engulf Long', '{{ticker}} Bullish Engulfing')
+alertcondition(bearishEngulfing, 'Engulf Short', '{{ticker}} Bearish Engulfing')

@@ -1,0 +1,48 @@
+//@version=5
+strategy('RTH Filtered Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// SESSION FILTER
+// Regular Trading Hours: 9:30 AM - 4:00 PM ET
+// ══════════════════════════════════════════
+rthSession = time(timeframe.period, '0930-1600:23456', 'America/New_York')
+inRTH = not na(rthSession)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// Simple EMA cross strategy, only during RTH
+// ══════════════════════════════════════════
+fastEMA = ta.ema(close, 9)
+slowEMA = ta.ema(close, 21)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(fastEMA, slowEMA) and inRTH
+shortCondition = ta.crossunder(fastEMA, slowEMA) and inRTH
+
+// Close positions at end of day
+endOfDay = hour == 15 and minute >= 55
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+if endOfDay
+    strategy.close_all('EOD')
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(fastEMA, 'Fast', color=color.green)
+plot(slowEMA, 'Slow', color=color.red)
+bgcolor(inRTH ? na : color.new(color.gray, 90))  // Gray out non-RTH
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'RTH Long', '{{ticker}} EMA cross long in RTH')
+alertcondition(shortCondition, 'RTH Short', '{{ticker}} EMA cross short in RTH')
