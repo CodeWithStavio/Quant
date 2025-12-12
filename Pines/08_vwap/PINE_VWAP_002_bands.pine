@@ -1,0 +1,54 @@
+//@version=5
+strategy('VWAP Bands', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+vwapVal = ta.vwap(hlc3)
+
+// Calculate VWAP standard deviation bands
+var float sumSqDiff = 0.0
+var int count = 0
+
+if ta.change(time('D'))
+    sumSqDiff := 0.0
+    count := 0
+
+sumSqDiff := sumSqDiff + math.pow(close - vwapVal, 2)
+count := count + 1
+vwapStdev = math.sqrt(sumSqDiff / count)
+
+upper1 = vwapVal + vwapStdev
+lower1 = vwapVal - vwapStdev
+upper2 = vwapVal + vwapStdev * 2
+lower2 = vwapVal - vwapStdev * 2
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Mean reversion at bands
+// ══════════════════════════════════════════
+longCondition = close <= lower1 and close > lower2 and close > open
+shortCondition = close >= upper1 and close < upper2 and close < open
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(vwapVal, 'VWAP', color=color.purple, linewidth=2)
+plot(upper1, '+1 Stdev', color=color.red)
+plot(lower1, '-1 Stdev', color=color.green)
+plot(upper2, '+2 Stdev', color=color.new(color.red, 50))
+plot(lower2, '-2 Stdev', color=color.new(color.green, 50))
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'VWAP Band Long', '{{ticker}} at lower VWAP band')
+alertcondition(shortCondition, 'VWAP Band Short', '{{ticker}} at upper VWAP band')

@@ -1,0 +1,38 @@
+//@version=5
+strategy('BB %B Strategy', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[middle, upper, lower] = ta.bb(close, 20, 2.0)
+percentB = (close - lower) / (upper - lower)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// %B < 0 = below lower band, %B > 1 = above upper band
+// ══════════════════════════════════════════
+longCondition = ta.crossover(percentB, 0)
+shortCondition = ta.crossunder(percentB, 1)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(percentB, '%B', color=color.purple, linewidth=2)
+hline(1, 'Upper', color=color.red)
+hline(0.5, 'Middle', color=color.gray)
+hline(0, 'Lower', color=color.green)
+bgcolor(percentB < 0 ? color.new(color.green, 90) : percentB > 1 ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, '%B Long', '{{ticker}} %B crossed above 0')
+alertcondition(shortCondition, '%B Short', '{{ticker}} %B crossed below 1')

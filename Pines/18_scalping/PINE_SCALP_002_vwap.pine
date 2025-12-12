@@ -1,0 +1,42 @@
+//@version=5
+strategy('VWAP Scalp', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// BEST FOR: 5-minute chart
+// ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+vwapVal = ta.vwap(hlc3)
+rsi = ta.rsi(close, 7)  // Fast RSI for scalping
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Scalp longs: pullback to VWAP from above, RSI not overbought
+// Scalp shorts: rally to VWAP from below, RSI not oversold
+// ══════════════════════════════════════════
+longCondition = close > vwapVal and low <= vwapVal * 1.001 and rsi < 60 and close > open
+shortCondition = close < vwapVal and high >= vwapVal * 0.999 and rsi > 40 and close < open
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// 8 tick TP, 4 tick SL
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+    strategy.exit('Long Exit', 'Long', profit=8, loss=4)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+    strategy.exit('Short Exit', 'Short', profit=8, loss=4)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(vwapVal, 'VWAP', color=color.purple, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'VWAP Scalp Long', '{{ticker}} VWAP bounce long')
+alertcondition(shortCondition, 'VWAP Scalp Short', '{{ticker}} VWAP rejection short')

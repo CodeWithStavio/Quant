@@ -1,0 +1,66 @@
+//@version=5
+strategy('GMMA Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// GUPPY MULTIPLE MOVING AVERAGE
+// ══════════════════════════════════════════
+
+// Short-term EMAs (traders)
+st1 = ta.ema(close, 3)
+st2 = ta.ema(close, 5)
+st3 = ta.ema(close, 8)
+st4 = ta.ema(close, 10)
+st5 = ta.ema(close, 12)
+st6 = ta.ema(close, 15)
+
+// Long-term EMAs (investors)
+lt1 = ta.ema(close, 30)
+lt2 = ta.ema(close, 35)
+lt3 = ta.ema(close, 40)
+lt4 = ta.ema(close, 45)
+lt5 = ta.ema(close, 50)
+lt6 = ta.ema(close, 60)
+
+// ══════════════════════════════════════════
+// AVERAGE OF EACH GROUP
+// ══════════════════════════════════════════
+stAvg = (st1 + st2 + st3 + st4 + st5 + st6) / 6
+ltAvg = (lt1 + lt2 + lt3 + lt4 + lt5 + lt6) / 6
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(stAvg, ltAvg)
+shortCondition = ta.crossunder(stAvg, ltAvg)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS - Short-term in blue
+// ══════════════════════════════════════════
+plot(st1, color=color.new(color.aqua, 0))
+plot(st2, color=color.new(color.aqua, 10))
+plot(st3, color=color.new(color.aqua, 20))
+plot(st4, color=color.new(color.aqua, 30))
+plot(st5, color=color.new(color.aqua, 40))
+plot(st6, color=color.new(color.aqua, 50))
+
+// Long-term in red
+plot(lt1, color=color.new(color.red, 0))
+plot(lt2, color=color.new(color.red, 10))
+plot(lt3, color=color.new(color.red, 20))
+plot(lt4, color=color.new(color.red, 30))
+plot(lt5, color=color.new(color.red, 40))
+plot(lt6, color=color.new(color.red, 50))
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'GMMA Long', '{{ticker}} GMMA bullish crossover')
+alertcondition(shortCondition, 'GMMA Short', '{{ticker}} GMMA bearish crossover')

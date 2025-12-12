@@ -1,0 +1,44 @@
+//@version=5
+strategy('MA Ribbon Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// MULTIPLE EMAs FORMING A RIBBON
+// ══════════════════════════════════════════
+ema10 = ta.ema(close, 10)
+ema20 = ta.ema(close, 20)
+ema30 = ta.ema(close, 30)
+ema40 = ta.ema(close, 40)
+ema50 = ta.ema(close, 50)
+
+// ══════════════════════════════════════════
+// CONDITIONS - All EMAs aligned
+// ══════════════════════════════════════════
+bullishRibbon = ema10 > ema20 and ema20 > ema30 and ema30 > ema40 and ema40 > ema50
+bearishRibbon = ema10 < ema20 and ema20 < ema30 and ema30 < ema40 and ema40 < ema50
+
+longCondition = bullishRibbon and not bullishRibbon[1]
+shortCondition = bearishRibbon and not bearishRibbon[1]
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ema10, 'EMA10', color=color.new(color.green, 0))
+plot(ema20, 'EMA20', color=color.new(color.green, 20))
+plot(ema30, 'EMA30', color=color.new(color.green, 40))
+plot(ema40, 'EMA40', color=color.new(color.green, 60))
+plot(ema50, 'EMA50', color=color.new(color.green, 80))
+bgcolor(bullishRibbon ? color.new(color.green, 90) : bearishRibbon ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Ribbon Long', '{{ticker}} MA Ribbon aligned BULLISH')
+alertcondition(shortCondition, 'Ribbon Short', '{{ticker}} MA Ribbon aligned BEARISH')

@@ -1,0 +1,50 @@
+//@version=5
+strategy('RSI Range Shift', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+rsiLen = input.int(14, 'RSI Length')
+
+// ══════════════════════════════════════════
+// INDICATOR
+// ══════════════════════════════════════════
+rsi = ta.rsi(close, rsiLen)
+
+// ══════════════════════════════════════════
+// RSI REGIME DETECTION
+// In uptrends, RSI tends to stay between 40-80
+// In downtrends, RSI tends to stay between 20-60
+// ══════════════════════════════════════════
+bullishRegime = rsi > 40 and rsi < 80
+bearishRegime = rsi > 20 and rsi < 60
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Enter long when RSI breaks above 50 from below
+// Enter short when RSI breaks below 50 from above
+// ══════════════════════════════════════════
+longCondition = ta.crossover(rsi, 50) and rsi[1] < 40
+shortCondition = ta.crossunder(rsi, 50) and rsi[1] > 60
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(rsi, 'RSI', color=color.blue)
+hline(50, 'Midline')
+hline(40, 'Bull Support', color=color.green, linestyle=hline.style_dotted)
+hline(60, 'Bear Resistance', color=color.red, linestyle=hline.style_dotted)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Range Shift Long', '{{ticker}} RSI bullish range shift')
+alertcondition(shortCondition, 'Range Shift Short', '{{ticker}} RSI bearish range shift')

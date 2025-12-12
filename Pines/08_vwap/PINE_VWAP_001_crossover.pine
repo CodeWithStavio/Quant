@@ -1,0 +1,32 @@
+//@version=5
+strategy('VWAP Crossover', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+vwapVal = ta.vwap(hlc3)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, vwapVal)
+shortCondition = ta.crossunder(close, vwapVal)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(vwapVal, 'VWAP', color=color.purple, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'VWAP Long', '{{ticker}} crossed above VWAP')
+alertcondition(shortCondition, 'VWAP Short', '{{ticker}} crossed below VWAP')

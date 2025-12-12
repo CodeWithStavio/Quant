@@ -1,0 +1,50 @@
+//@version=5
+strategy('Camarilla Pivots', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// GET PREVIOUS DAY DATA
+// ══════════════════════════════════════════
+prevHigh = request.security(syminfo.tickerid, 'D', high[1])
+prevLow = request.security(syminfo.tickerid, 'D', low[1])
+prevClose = request.security(syminfo.tickerid, 'D', close[1])
+
+range1 = prevHigh - prevLow
+
+// ══════════════════════════════════════════
+// CAMARILLA LEVELS
+// ══════════════════════════════════════════
+h4 = prevClose + range1 * 1.1 / 2
+h3 = prevClose + range1 * 1.1 / 4
+l3 = prevClose - range1 * 1.1 / 4
+l4 = prevClose - range1 * 1.1 / 2
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Trade between H3/L3, breakout at H4/L4
+// ══════════════════════════════════════════
+longCondition = low <= l3 and close > l3  // Bounce at L3
+shortCondition = high >= h3 and close < h3  // Reject at H3
+breakoutLong = close > h4
+breakoutShort = close < l4
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition or breakoutLong
+    strategy.entry('Long', strategy.long)
+if shortCondition or breakoutShort
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(h4, 'H4', color=color.red, linewidth=2)
+plot(h3, 'H3', color=color.new(color.red, 50))
+plot(l3, 'L3', color=color.new(color.green, 50))
+plot(l4, 'L4', color=color.green, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Cam Long', '{{ticker}} at Camarilla L3')
+alertcondition(shortCondition, 'Cam Short', '{{ticker}} at Camarilla H3')

@@ -1,0 +1,45 @@
+//@version=5
+strategy('Stochastic Crossover', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+kLen = input.int(14, 'K Length')
+dLen = input.int(3, 'D Length')
+smooth = input.int(3, 'Smoothing')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+k = ta.sma(ta.stoch(close, high, low, kLen), smooth)
+d = ta.sma(k, dLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(k, d) and k < 20
+shortCondition = ta.crossunder(k, d) and k > 80
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(k, '%K', color=color.blue, linewidth=2)
+plot(d, '%D', color=color.orange, linewidth=2)
+hline(80, 'OB', color=color.red)
+hline(20, 'OS', color=color.green)
+hline(50, 'Mid', color=color.gray)
+bgcolor(k < 20 ? color.new(color.green, 90) : k > 80 ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Stoch Long', '{{ticker}} Stochastic bullish cross in OS')
+alertcondition(shortCondition, 'Stoch Short', '{{ticker}} Stochastic bearish cross in OB')

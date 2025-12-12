@@ -1,0 +1,40 @@
+//@version=5
+strategy('MFI Strategy', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+mfiLen = input.int(14, 'MFI Length')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+mfi = ta.mfi(hlc3, mfiLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(mfi, 20)
+shortCondition = ta.crossunder(mfi, 80)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(mfi, 'MFI', color=color.purple, linewidth=2)
+hline(80, 'OB', color=color.red)
+hline(20, 'OS', color=color.green)
+hline(50, 'Mid', color=color.gray)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'MFI Long', '{{ticker}} MFI oversold bounce')
+alertcondition(shortCondition, 'MFI Short', '{{ticker}} MFI overbought rejection')

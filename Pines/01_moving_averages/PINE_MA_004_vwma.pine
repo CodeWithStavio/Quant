@@ -1,0 +1,41 @@
+//@version=5
+strategy('VWMA Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+vwmaLen = input.int(20, 'VWMA Length')
+smaLen = input.int(20, 'SMA Length')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+vwmaVal = ta.vwma(close, vwmaLen)
+smaVal = ta.sma(close, smaLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// When VWMA > SMA, buying pressure is strong
+// ══════════════════════════════════════════
+longCondition = ta.crossover(vwmaVal, smaVal)
+shortCondition = ta.crossunder(vwmaVal, smaVal)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(vwmaVal, 'VWMA', color=color.blue, linewidth=2)
+plot(smaVal, 'SMA', color=color.gray)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'VWMA Long', '{{ticker}} VWMA cross up')
+alertcondition(shortCondition, 'VWMA Short', '{{ticker}} VWMA cross down')

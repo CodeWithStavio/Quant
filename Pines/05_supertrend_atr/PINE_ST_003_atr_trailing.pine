@@ -1,0 +1,60 @@
+//@version=5
+strategy('ATR Trailing Stop', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+atrLen = input.int(14, 'ATR Length')
+atrMult = input.float(2.0, 'ATR Multiplier')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+atr = ta.atr(atrLen)
+
+var float trailStop = na
+var int tradeDir = 0
+
+if strategy.position_size > 0
+    trailStop := math.max(trailStop, close - atr * atrMult)
+else if strategy.position_size < 0
+    trailStop := math.min(trailStop, close + atr * atrMult)
+else
+    trailStop := na
+
+// Simple entry: close above/below 20 EMA
+ema = ta.ema(close, 20)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, ema)
+shortCondition = ta.crossunder(close, ema)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+    trailStop := close - atr * atrMult
+if shortCondition
+    strategy.entry('Short', strategy.short)
+    trailStop := close + atr * atrMult
+
+// Exit on trailing stop hit
+if strategy.position_size > 0 and close < trailStop
+    strategy.close('Long')
+if strategy.position_size < 0 and close > trailStop
+    strategy.close('Short')
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ema, 'EMA', color=color.blue)
+plot(trailStop, 'Trail Stop', color=color.orange, style=plot.style_circles)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'ATR Trail Long', '{{ticker}} Long with ATR trail')
+alertcondition(shortCondition, 'ATR Trail Short', '{{ticker}} Short with ATR trail')

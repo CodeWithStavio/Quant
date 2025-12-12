@@ -1,0 +1,63 @@
+//@version=5
+strategy('BB Squeeze', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+bbLen = input.int(20, 'BB Length')
+bbMult = input.float(2.0, 'BB Mult')
+kcLen = input.int(20, 'KC Length')
+kcMult = input.float(1.5, 'KC Mult')
+
+// ══════════════════════════════════════════
+// BOLLINGER BANDS
+// ══════════════════════════════════════════
+[bbMiddle, bbUpper, bbLower] = ta.bb(close, bbLen, bbMult)
+
+// ══════════════════════════════════════════
+// KELTNER CHANNEL
+// ══════════════════════════════════════════
+kcMiddle = ta.ema(close, kcLen)
+kcRange = ta.atr(kcLen)
+kcUpper = kcMiddle + kcRange * kcMult
+kcLower = kcMiddle - kcRange * kcMult
+
+// ══════════════════════════════════════════
+// SQUEEZE DETECTION
+// Squeeze: BB inside KC
+// ══════════════════════════════════════════
+squeezeOn = bbLower > kcLower and bbUpper < kcUpper
+squeezeOff = not squeezeOn
+
+// Momentum for direction
+mom = ta.linreg(close - ta.sma(close, bbLen), bbLen, 0)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Signal when squeeze releases
+// ══════════════════════════════════════════
+longCondition = squeezeOff and not squeezeOff[1] and mom > 0
+shortCondition = squeezeOff and not squeezeOff[1] and mom < 0
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(bbUpper, 'BB Upper', color=color.red)
+plot(bbLower, 'BB Lower', color=color.red)
+plot(kcUpper, 'KC Upper', color=color.blue)
+plot(kcLower, 'KC Lower', color=color.blue)
+bgcolor(squeezeOn ? color.new(color.yellow, 80) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Squeeze Long', '{{ticker}} BB Squeeze fired LONG')
+alertcondition(shortCondition, 'Squeeze Short', '{{ticker}} BB Squeeze fired SHORT')

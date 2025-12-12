@@ -1,0 +1,47 @@
+//@version=5
+strategy('Chandelier Exit', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+period = input.int(22, 'Period')
+mult = input.float(3.0, 'ATR Multiplier')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+atr = ta.atr(period)
+highestHigh = ta.highest(high, period)
+lowestLow = ta.lowest(low, period)
+
+chandelierLong = highestHigh - atr * mult
+chandelierShort = lowestLow + atr * mult
+
+var int trend = 1
+trend := close > chandelierShort[1] ? 1 : close < chandelierLong[1] ? -1 : trend
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = trend == 1 and trend[1] == -1
+shortCondition = trend == -1 and trend[1] == 1
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(trend == 1 ? chandelierLong : na, 'Long Stop', color=color.green, linewidth=2)
+plot(trend == -1 ? chandelierShort : na, 'Short Stop', color=color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'Chandelier Long', '{{ticker}} Chandelier flipped bullish')
+alertcondition(shortCondition, 'Chandelier Short', '{{ticker}} Chandelier flipped bearish')

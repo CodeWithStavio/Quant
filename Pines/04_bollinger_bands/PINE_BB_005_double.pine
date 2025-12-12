@@ -1,0 +1,44 @@
+//@version=5
+strategy('Double BB Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[mid1, upper1, lower1] = ta.bb(close, 20, 1.0)  // Inner bands
+[mid2, upper2, lower2] = ta.bb(close, 20, 2.0)  // Outer bands
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Buy zone: between lower bands
+// Sell zone: between upper bands
+// ══════════════════════════════════════════
+buyZone = close < lower1 and close > lower2
+sellZone = close > upper1 and close < upper2
+
+longCondition = buyZone and close > open
+shortCondition = sellZone and close < open
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(upper2, 'Outer Upper', color=color.red, linewidth=2)
+plot(upper1, 'Inner Upper', color=color.new(color.red, 50))
+plot(mid1, 'Middle', color=color.gray)
+plot(lower1, 'Inner Lower', color=color.new(color.green, 50))
+plot(lower2, 'Outer Lower', color=color.green, linewidth=2)
+
+bgcolor(buyZone ? color.new(color.green, 90) : sellZone ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'DBB Long', '{{ticker}} in buy zone')
+alertcondition(shortCondition, 'DBB Short', '{{ticker}} in sell zone')

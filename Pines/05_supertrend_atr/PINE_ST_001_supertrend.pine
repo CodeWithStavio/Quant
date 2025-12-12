@@ -1,0 +1,38 @@
+//@version=5
+strategy('SuperTrend Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+atrPeriod = input.int(10, 'ATR Period')
+atrMult = input.float(3.0, 'ATR Multiplier')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+[supertrend, direction] = ta.supertrend(atrMult, atrPeriod)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, supertrend)
+shortCondition = ta.crossunder(close, supertrend)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(supertrend, 'SuperTrend', color=direction < 0 ? color.green : color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'ST Long', '{{ticker}} SuperTrend flipped BULLISH')
+alertcondition(shortCondition, 'ST Short', '{{ticker}} SuperTrend flipped BEARISH')

@@ -1,0 +1,34 @@
+//@version=5
+strategy('Prev Day HL Breakout', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+prevHigh = request.security(syminfo.tickerid, 'D', high[1])
+prevLow = request.security(syminfo.tickerid, 'D', low[1])
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, prevHigh)
+shortCondition = ta.crossunder(close, prevLow)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(prevHigh, 'Prev High', color=color.green, linewidth=2)
+plot(prevLow, 'Prev Low', color=color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'PDH Long', '{{ticker}} broke previous day high')
+alertcondition(shortCondition, 'PDL Short', '{{ticker}} broke previous day low')

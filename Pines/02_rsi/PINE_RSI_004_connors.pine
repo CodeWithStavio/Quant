@@ -1,0 +1,66 @@
+//@version=5
+strategy('Connors RSI', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// Connors RSI = Average of (RSI + RSI Streak + Percent Rank)
+// ══════════════════════════════════════════
+rsiLen = input.int(3, 'RSI Length')
+streakLen = input.int(2, 'Streak RSI Length')
+rankLen = input.int(100, 'Percent Rank Length')
+
+// ══════════════════════════════════════════
+// STANDARD RSI
+// ══════════════════════════════════════════
+rsi1 = ta.rsi(close, rsiLen)
+
+// ══════════════════════════════════════════
+// STREAK RSI (consecutive up/down days)
+// ══════════════════════════════════════════
+var int streak = 0
+if close > close[1]
+    streak := streak >= 0 ? streak + 1 : 1
+else if close < close[1]
+    streak := streak <= 0 ? streak - 1 : -1
+else
+    streak := 0
+rsi2 = ta.rsi(streak, streakLen)
+
+// ══════════════════════════════════════════
+// PERCENT RANK OF ROC
+// ══════════════════════════════════════════
+roc = (close - close[1]) / close[1] * 100
+rsi3 = ta.percentrank(roc, rankLen)
+
+// ══════════════════════════════════════════
+// CONNORS RSI
+// ══════════════════════════════════════════
+crsi = (rsi1 + rsi2 + rsi3) / 3
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(crsi, 10)
+shortCondition = ta.crossunder(crsi, 90)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(crsi, 'Connors RSI', color=color.purple, linewidth=2)
+hline(90, 'OB', color=color.red)
+hline(10, 'OS', color=color.green)
+hline(50, 'Mid', color=color.gray)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'CRSI Long', '{{ticker}} Connors RSI extreme oversold')
+alertcondition(shortCondition, 'CRSI Short', '{{ticker}} Connors RSI extreme overbought')

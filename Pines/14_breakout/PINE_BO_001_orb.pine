@@ -1,0 +1,59 @@
+//@version=5
+strategy('Opening Range Breakout', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+orbMinutes = input.int(30, 'ORB Minutes', options=[5, 15, 30, 60])
+
+// ══════════════════════════════════════════
+// ORB DETECTION
+// Detect market open (9:30 ET)
+// ══════════════════════════════════════════
+isMarketOpen = hour == 9 and minute == 30 and time > 0
+
+var float orbHigh = na
+var float orbLow = na
+var bool orbSet = false
+
+if ta.change(time('D'))
+    orbHigh := na
+    orbLow := na
+    orbSet := false
+
+// During ORB period
+orbPeriod = (hour == 9 and minute >= 30) or (hour == 10 and minute < 0 and orbMinutes == 30)
+
+if orbPeriod and not orbSet
+    orbHigh := na(orbHigh) ? high : math.max(orbHigh, high)
+    orbLow := na(orbLow) ? low : math.min(orbLow, low)
+
+if hour == 10 and minute == 0
+    orbSet := true
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Breakout signals
+// ══════════════════════════════════════════
+longCondition = orbSet and close > orbHigh and close[1] <= orbHigh
+shortCondition = orbSet and close < orbLow and close[1] >= orbLow
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(orbSet ? orbHigh : na, 'ORB High', color=color.green, linewidth=2, style=plot.style_stepline)
+plot(orbSet ? orbLow : na, 'ORB Low', color=color.red, linewidth=2, style=plot.style_stepline)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'ORB Long', '{{ticker}} broke above Opening Range')
+alertcondition(shortCondition, 'ORB Short', '{{ticker}} broke below Opening Range')

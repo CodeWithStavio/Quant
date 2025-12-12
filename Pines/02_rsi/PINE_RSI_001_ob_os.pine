@@ -1,0 +1,49 @@
+//@version=5
+strategy('RSI OB/OS Strategy', overlay=false, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+rsiLen = input.int(14, 'RSI Length')
+overbought = input.int(70, 'Overbought')
+oversold = input.int(30, 'Oversold')
+
+// ══════════════════════════════════════════
+// INDICATOR
+// ══════════════════════════════════════════
+rsi = ta.rsi(close, rsiLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(rsi, oversold)
+shortCondition = ta.crossunder(rsi, overbought)
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// Exit at middle
+if rsi > 50 and strategy.position_size > 0
+    strategy.close('Long')
+if rsi < 50 and strategy.position_size < 0
+    strategy.close('Short')
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(rsi, 'RSI', color=color.purple, linewidth=2)
+hline(overbought, 'Overbought', color=color.red)
+hline(oversold, 'Oversold', color=color.green)
+hline(50, 'Middle', color=color.gray)
+bgcolor(rsi < oversold ? color.new(color.green, 90) : rsi > overbought ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'RSI Long', '{{ticker}} RSI oversold bounce')
+alertcondition(shortCondition, 'RSI Short', '{{ticker}} RSI overbought rejection')

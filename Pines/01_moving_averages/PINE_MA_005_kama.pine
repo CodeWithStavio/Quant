@@ -1,0 +1,50 @@
+//@version=5
+strategy('KAMA Strategy', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+kamaLen = input.int(10, 'KAMA Length')
+fastEnd = input.float(2, 'Fast End')
+slowEnd = input.float(30, 'Slow End')
+
+// ══════════════════════════════════════════
+// KAMA CALCULATION (Kaufman Adaptive Moving Average)
+// ══════════════════════════════════════════
+change1 = math.abs(close - close[kamaLen])
+volatility = math.sum(math.abs(close - close[1]), kamaLen)
+er = volatility != 0 ? change1 / volatility : 0
+fastSC = 2.0 / (fastEnd + 1)
+slowSC = 2.0 / (slowEnd + 1)
+sc = math.pow(er * (fastSC - slowSC) + slowSC, 2)
+
+var float kama = na
+kama := na(kama[1]) ? close : kama[1] + sc * (close - kama[1])
+
+kamaRising = kama > kama[1]
+kamaFalling = kama < kama[1]
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// ══════════════════════════════════════════
+longCondition = ta.crossover(close, kama) and kamaRising
+shortCondition = ta.crossunder(close, kama) and kamaFalling
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(kama, 'KAMA', color=kamaRising ? color.green : color.red, linewidth=2)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'KAMA Long', '{{ticker}} KAMA bullish')
+alertcondition(shortCondition, 'KAMA Short', '{{ticker}} KAMA bearish')

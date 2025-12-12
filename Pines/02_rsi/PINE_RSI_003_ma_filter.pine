@@ -1,0 +1,42 @@
+//@version=5
+strategy('RSI + MA Filter', overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.cash_per_contract, commission_value=0.62)
+
+// ══════════════════════════════════════════
+// INPUTS
+// ══════════════════════════════════════════
+rsiLen = input.int(14, 'RSI Length')
+maLen = input.int(200, 'MA Length')
+
+// ══════════════════════════════════════════
+// INDICATORS
+// ══════════════════════════════════════════
+rsi = ta.rsi(close, rsiLen)
+ma = ta.ema(close, maLen)
+
+// ══════════════════════════════════════════
+// CONDITIONS
+// Long: RSI oversold AND price above 200 EMA (uptrend)
+// Short: RSI overbought AND price below 200 EMA (downtrend)
+// ══════════════════════════════════════════
+longCondition = ta.crossover(rsi, 30) and close > ma
+shortCondition = ta.crossunder(rsi, 70) and close < ma
+
+// ══════════════════════════════════════════
+// STRATEGY EXECUTION
+// ══════════════════════════════════════════
+if longCondition
+    strategy.entry('Long', strategy.long)
+if shortCondition
+    strategy.entry('Short', strategy.short)
+
+// ══════════════════════════════════════════
+// PLOTS
+// ══════════════════════════════════════════
+plot(ma, '200 EMA', color=color.orange, linewidth=2)
+bgcolor(longCondition ? color.new(color.green, 90) : shortCondition ? color.new(color.red, 90) : na)
+
+// ══════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════
+alertcondition(longCondition, 'RSI+MA Long', '{{ticker}} RSI oversold in uptrend')
+alertcondition(shortCondition, 'RSI+MA Short', '{{ticker}} RSI overbought in downtrend')
