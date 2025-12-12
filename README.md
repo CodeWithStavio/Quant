@@ -1,96 +1,93 @@
 # Jesse Crypto Quant Strategy Framework
 
-A comprehensive collection of quantitative trading strategies for the Jesse cryptocurrency trading framework.
+A comprehensive collection of **278 quantitative trading strategies** for the [Jesse](https://jesse.trade) cryptocurrency trading framework.
 
 ## Overview
 
-This repository contains **292+ base strategies** organized into 30 categories, covering:
+This repository contains a complete library of trading strategies organized into 30 categories, covering:
 
-- Technical Analysis (Moving Averages, Momentum, MACD, Bollinger Bands, etc.)
+- Technical Analysis (Moving Averages, Momentum, MACD, Bollinger Bands)
 - Volatility-based strategies (ATR, Keltner, Donchian)
-- Volume Analysis
+- Volume Analysis (OBV, MFI, VWAP, Volume Profile)
 - Japanese Candlestick Patterns
-- Price Action
-- Statistical/Quant Approaches
-- Machine Learning indicators
+- Price Action & Smart Money Concepts (SMC/ICT)
+- Statistical & Machine Learning approaches
 - Crypto-specific strategies
+- Multi-channel Signal Output System
 
 ## Project Structure
 
 ```
 Quant/
-├── config.py              # Jesse configuration
-├── routes.py              # Trading routes
-├── strategies/            # All strategy implementations
-│   ├── base_strategy.py   # Base class for all strategies
-│   ├── moving_averages/   # 15 MA strategies
-│   ├── momentum_oscillators/ # 20 momentum strategies
-│   ├── macd/              # 8 MACD strategies
-│   ├── bollinger_bands/   # 8 BB strategies
-│   ├── keltner_channels/  # Keltner strategies
-│   ├── donchian_channels/ # Donchian strategies
-│   ├── atr_volatility/    # ATR strategies
-│   ├── volume/            # Volume strategies
-│   ├── ichimoku/          # Ichimoku strategies
-│   ├── adx_dmi/           # ADX/DMI strategies
-│   ├── parabolic_sar/     # PSAR strategies
-│   ├── pivot_points/      # Pivot strategies
-│   ├── fibonacci/         # Fibonacci strategies
-│   ├── candlestick_patterns/ # Candlestick patterns
-│   ├── price_action/      # Price action strategies
-│   ├── mean_reversion/    # Mean reversion strategies
-│   ├── breakout/          # Breakout strategies
-│   ├── trend_following/   # Trend following strategies
-│   ├── scalping/          # Scalping strategies
-│   ├── multi_timeframe/   # MTF strategies
-│   └── ...                # More categories
-├── utils/                 # Utility modules
-│   ├── helpers.py         # Common helper functions
-│   └── signal_output.py   # Signal output system
-└── signals/               # Output directory for signals
+├── config.py                  # Jesse configuration
+├── routes.py                  # Trading routes
+├── strategies/                # All strategy implementations
+│   ├── ma/                    # Moving Average strategies (15)
+│   ├── momentum/              # Momentum Oscillator strategies (20)
+│   ├── macd/                  # MACD strategies (8)
+│   ├── bollinger/             # Bollinger Band strategies (8)
+│   ├── volatility/            # Keltner/Donchian/ATR strategies (15)
+│   ├── volume/                # Volume strategies (15)
+│   ├── trend/                 # Ichimoku/ADX/SAR strategies (17)
+│   ├── pivot_fib/             # Pivot/Fibonacci strategies (14)
+│   ├── candlestick/           # Candlestick pattern strategies (21)
+│   ├── mean_reversion/        # Mean Reversion/Breakout strategies (20)
+│   ├── trend_scalping/        # Trend Following/Scalping strategies (20)
+│   ├── mtf_ml/                # Multi-Timeframe/ML strategies (21)
+│   ├── sentiment_crypto/      # Sentiment/On-Chain/Crypto strategies (32)
+│   ├── orderflow_stats/       # Order Flow/Statistical strategies (18)
+│   └── advanced/              # Advanced/SMC/ICT strategies (34)
+├── signals/                   # Signal output system
+│   ├── signal.py              # Signal data class
+│   ├── manager.py             # Signal distribution manager
+│   ├── base_output.py         # Base output handler
+│   ├── strategy_mixin.py      # Mixin for strategy integration
+│   └── outputs/               # Output channel handlers
+│       ├── console.py         # Console/terminal output
+│       ├── file.py            # JSON file output
+│       ├── api.py             # REST API output
+│       ├── telegram.py        # Telegram bot output
+│       ├── discord.py         # Discord webhook output
+│       └── email.py           # Email (SMTP) output
+└── utils/                     # Utility modules
 ```
 
 ## Strategy Categories
 
-### 1. Moving Average Strategies (15)
-- SMA Crossover, EMA Crossover, DEMA/TEMA, Hull MA
-- KAMA, VWMA, ZLEMA, ALMA, McGinley Dynamic
-- Triple MA, MA Price Position, MA Slope
-- MA Ribbon, GMMA, MA Envelope
+### Technical Analysis (66 strategies)
 
-### 2. Momentum Oscillators (20)
-- RSI (Overbought/Oversold, Divergence, Trend Following)
-- Stochastic, Stochastic RSI, Double Stochastic
-- Williams %R, CCI, Ultimate Oscillator
-- Awesome Oscillator, Momentum, ROC
-- TSI, Coppock Curve, KST, TRIX, PPO, Connors RSI
+| Category | ID Prefix | Count | Complexity | Description |
+|----------|-----------|-------|------------|-------------|
+| Moving Average | MA_ | 15 | 2-6 | SMA, EMA, WMA, Hull, KAMA crossovers |
+| Momentum | MOM_ | 20 | 3-6 | RSI, Stochastic, CCI, Williams %R |
+| MACD | MACD_ | 8 | 4-6 | MACD variations and divergences |
+| Bollinger Bands | BB_ | 8 | 4-6 | BB squeeze, breakout, mean reversion |
+| Volatility | VOL_/KC_/DC_ | 15 | 4-7 | Keltner, Donchian, ATR-based |
 
-### 3. MACD Strategies (8)
-- Classic Crossover, Zero Line Cross, Histogram Reversal
-- MACD Divergence, MACD-V (Volatility Normalized)
-- Impulse MACD, MACD + RSI Filter, Multi-Timeframe MACD
+### Volume & Trend (32 strategies)
 
-### 4. Bollinger Band Strategies (8)
-- BB Bounce, BB Breakout, BB Squeeze
-- Bollinger %B, Double BB, BB + RSI Combo
-- Walking the Bands, BB Width
+| Category | ID Prefix | Count | Complexity | Description |
+|----------|-----------|-------|------------|-------------|
+| Volume | VOL_ | 15 | 4-7 | OBV, MFI, VWAP, Volume Profile |
+| Trend | ICH_/ADX_/SAR_ | 17 | 5-8 | Ichimoku, ADX, Parabolic SAR |
 
-### 5. Volatility Strategies (15)
-- Keltner Channels (4 strategies)
-- Donchian Channels (4 strategies)
-- ATR-based strategies (7 strategies)
+### Price Action (55 strategies)
 
-### 6-30. Additional Categories
-- Volume (15), Ichimoku (7), ADX/DMI (6)
-- Parabolic SAR (4), Pivot Points (7), Fibonacci (7)
-- Candlestick Patterns (20), Price Action (25)
-- Mean Reversion (10), Breakout (10)
-- Trend Following (10), Scalping (10)
-- Multi-Timeframe (6), Machine Learning (15)
-- Sentiment (10), On-Chain (10), Crypto-Specific (12)
-- Order Flow (8), Statistical (10)
-- Seasonality (8), Risk/Allocation (8)
-- Composite (8), Advanced/Exotic (10)
+| Category | ID Prefix | Count | Complexity | Description |
+|----------|-----------|-------|------------|-------------|
+| Pivot/Fibonacci | PIV_/FIB_ | 14 | 4-7 | Support/resistance, Fib retracements |
+| Candlestick | CAND_ | 21 | 3-6 | Engulfing, doji, hammer patterns |
+| Mean Reversion | MR_/BO_ | 20 | 5-7 | Statistical mean reversion, breakouts |
+| Trend/Scalping | TF_/SC_ | 20 | 4-6 | Trend following and scalping |
+
+### Advanced (125 strategies)
+
+| Category | ID Prefix | Count | Complexity | Description |
+|----------|-----------|-------|------------|-------------|
+| Multi-Timeframe/ML | MTF_/ML_ | 21 | 6-9 | MTF analysis, ML proxies |
+| Sentiment/Crypto | SENT_/ONCHAIN_/CRYPTO_ | 32 | 5-8 | Sentiment, on-chain, crypto-specific |
+| Order Flow/Stats | OF_/STAT_ | 18 | 6-9 | Volume delta, statistical methods |
+| Advanced/SMC | ADV_/SEASON_/RISK_/COMBO_ | 34 | 7-10 | Smart Money, ICT, risk management |
 
 ## Installation
 
@@ -105,116 +102,221 @@ git clone <repository-url>
 cd Quant
 ```
 
-3. Configure Jesse:
+3. Install optional dependencies for signal outputs:
 ```bash
-jesse install
+pip install requests  # For API, Telegram, Discord
 ```
 
 ## Usage
 
+### Basic Strategy Usage
+
+Configure your `routes.py`:
+```python
+from strategies.ma.ma_001_sma_cross import SMACrossover
+
+routes = [
+    ('Binance Futures', 'BTC-USDT', '1h', 'SMACrossover'),
+]
+```
+
 ### Backtesting
 ```bash
-jesse backtest 2020-01-01 2024-01-01
+jesse backtest 2023-01-01 2024-01-01
 ```
 
 ### Optimization
 ```bash
-jesse optimize 2020-01-01 2024-01-01 --dna
+jesse optimize --strategy SMACrossover --start 2023-01-01 --finish 2024-01-01
 ```
 
-### Paper Trading
-```bash
-jesse live
+## Signal Output System
+
+The signal system supports multiple delivery channels for real-time trade alerts.
+
+### Quick Setup
+
+```python
+from signals import SignalManager, Signal, SignalType
+from signals.outputs import ConsoleOutput, FileOutput, TelegramOutput
+
+# Create manager with outputs
+manager = SignalManager()
+manager.register(ConsoleOutput(use_colors=True))
+manager.register(FileOutput(output_dir="./signals_output"))
+manager.register(TelegramOutput(
+    bot_token="YOUR_BOT_TOKEN",
+    chat_ids=["YOUR_CHAT_ID"]
+))
+
+# Create and send signal
+signal = Signal(
+    strategy_id="MA_001",
+    strategy_name="SMA Crossover",
+    signal_type=SignalType.LONG_ENTRY,
+    symbol="BTC-USDT",
+    exchange="Binance Futures",
+    timeframe="1h",
+    price=45000.00,
+    entry_price=45000.00,
+    stop_loss=44100.00,
+    quantity=0.1,
+    side="long",
+    confidence=75
+)
+
+manager.send(signal)
 ```
 
-## Strategy Template
-
-All strategies inherit from `BaseStrategy` and implement:
+### Using Strategy Mixin
 
 ```python
 from jesse.strategies import Strategy
+from signals.strategy_mixin import SignalMixin, SignalType
 
-class MyStrategy(Strategy):
+class MyStrategy(Strategy, SignalMixin):
     def __init__(self):
         super().__init__()
-        self.strategy_id = "XX_001"
+        self.strategy_id = "MY_001"
         self.strategy_name = "My Strategy"
-
-    @property
-    def hyperparameters(self):
-        return [
-            {'name': 'param1', 'type': int, 'min': 5, 'max': 50, 'default': 14},
-        ]
-
-    def should_long(self) -> bool:
-        # Entry long conditions
-        return False
-
-    def should_short(self) -> bool:
-        # Entry short conditions
-        return False
+        self.init_signals(console=True, file=True)
 
     def go_long(self):
-        # Execute long entry with risk management
-        pass
+        entry = self.price
+        stop = entry - (self.atr * 2)
+        qty = utils.size_to_qty(self.balance * 0.02, entry)
 
-    def go_short(self):
-        # Execute short entry with risk management
-        pass
+        self.buy = qty, entry
+        self.stop_loss = qty, stop
+
+        # Emit signal automatically
+        self.emit_long_entry(stop_loss=stop, quantity=qty, confidence=75)
 ```
 
-## Signal Output
+### Output Channels
 
-Signals are output in multiple formats:
-- Console (colored output)
-- JSON file (daily signal logs)
-- Telegram (optional)
-- Discord (optional)
+#### Console
+```python
+ConsoleOutput(use_colors=True, json_format=False)
+```
 
-Signal format:
+#### File (JSON)
+```python
+FileOutput(
+    output_dir="./signals",
+    daily_rotation=True,
+    pretty_print=True
+)
+```
+
+#### Telegram
+```python
+TelegramOutput(
+    bot_token="123456:ABC-DEF...",
+    chat_ids=["-100123456789"],
+    parse_mode="HTML"
+)
+```
+
+#### Discord
+```python
+DiscordOutput(
+    webhook_urls=["https://discord.com/api/webhooks/..."],
+    username="Trading Bot",
+    use_embeds=True
+)
+```
+
+#### REST API
+```python
+APIOutput(
+    endpoint="https://your-api.com/signals",
+    auth_token="bearer-token",
+    retries=3
+)
+```
+
+#### Email
+```python
+EmailOutput(
+    smtp_host="smtp.gmail.com",
+    smtp_port=587,
+    smtp_user="your@gmail.com",
+    smtp_password="app-password",
+    to_addresses=["alerts@example.com"]
+)
+```
+
+### Signal JSON Format
+
 ```json
 {
-    "timestamp": "2024-01-01T12:00:00",
-    "symbol": "BTC-USDT",
-    "timeframe": "15m",
     "strategy_id": "MA_001",
-    "signal_type": "LONG",
-    "confidence": 0.75,
+    "strategy_name": "SMA Crossover",
+    "signal_type": "LONG_ENTRY",
+    "symbol": "BTC-USDT",
+    "exchange": "Binance Futures",
+    "timeframe": "1h",
+    "price": 45000.00,
     "entry_price": 45000.00,
     "stop_loss": 44100.00,
-    "take_profit_1": 46350.00,
-    "risk_reward": 1.5
+    "take_profit": 46800.00,
+    "quantity": 0.1,
+    "side": "long",
+    "confidence": 75,
+    "timestamp": "2024-01-15T12:30:00.000000",
+    "metadata": {}
 }
 ```
+
+## Strategy Attributes
+
+Each strategy includes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `strategy_id` | str | Unique identifier (e.g., "MA_001") |
+| `strategy_name` | str | Human-readable name |
+| `complexity` | int | Difficulty rating (1-10) |
+| `crypto_suitability` | int | Crypto market fit (1-10) |
+| `hyperparameters` | list | Optimizable parameters |
+
+## Hyperparameters
+
+Strategies define hyperparameters for Jesse's optimization:
+
+```python
+@property
+def hyperparameters(self) -> List[Dict]:
+    return [
+        {'name': 'fast_period', 'type': int, 'min': 5, 'max': 20, 'default': 10},
+        {'name': 'slow_period', 'type': int, 'min': 20, 'max': 50, 'default': 30},
+        {'name': 'atr_multiplier', 'type': float, 'min': 1.0, 'max': 3.0, 'default': 2.0},
+    ]
+```
+
+## Recommended Timeframes
+
+| Strategy Type | Timeframes | Typical Hold Time |
+|--------------|------------|-------------------|
+| Scalping | 1m, 5m | Minutes to 1 hour |
+| Intraday | 15m, 1h | 1-24 hours |
+| Swing | 4h, 1d | Days to weeks |
+| Position | 1d, 1w | Weeks to months |
 
 ## Risk Management
 
 All strategies include:
 - ATR-based stop loss calculation
-- Multiple take profit levels
-- Position sizing based on risk percentage
-- Maximum position size limits
-
-## Timeframes
-
-Supported timeframes:
-- 1m, 3m, 5m (Scalping)
-- 15m, 30m (Intraday)
-- 1h, 4h (Swing)
-- 1d (Position)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Implement your strategy following the template
-4. Add tests
-5. Submit a pull request
-
-## Disclaimer
-
-This software is for educational and research purposes only. Trading cryptocurrencies carries significant risk. Past performance does not guarantee future results. Always conduct your own research and risk assessment before trading.
+- Position sizing (2% risk per trade default)
+- Trailing stop updates
+- Take profit targets
+- Risk/reward ratio tracking
 
 ## License
 
-MIT License
+MIT License - See LICENSE file for details.
+
+## Disclaimer
+
+This software is for educational and research purposes only. Trading cryptocurrencies carries significant risk. Past performance does not guarantee future results. Always conduct your own research and use proper risk management when trading.
